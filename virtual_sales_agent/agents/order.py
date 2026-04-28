@@ -45,7 +45,8 @@ Current context:
         ),
         ("placeholder", "{messages}"),
     ]
-).partial(time=datetime.now)
+).partial(time=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
 
 _order_runnable = _order_prompt | llm.bind_tools(order_safe_tools + order_sensitive_tools)
 order_agent = Agent(_order_runnable)
