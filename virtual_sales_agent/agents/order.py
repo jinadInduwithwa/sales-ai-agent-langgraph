@@ -4,6 +4,7 @@ Manages order placement (sensitive — requires human approval) and order status
 Tools: check_order_status (safe), create_order (sensitive)
 """
 
+import logging
 from datetime import datetime
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -14,6 +15,9 @@ from virtual_sales_agent.llm import llm
 from virtual_sales_agent.state import State
 from virtual_sales_agent.tools import check_order_status, create_order
 from virtual_sales_agent.utils import Agent
+
+logger = logging.getLogger(__name__)
+
 
 order_safe_tools = [check_order_status]
 order_sensitive_tools = [create_order]
