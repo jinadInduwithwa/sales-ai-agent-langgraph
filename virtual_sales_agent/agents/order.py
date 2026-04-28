@@ -51,7 +51,8 @@ _order_runnable = _order_prompt | llm.bind_tools(order_safe_tools + order_sensit
 order_agent = Agent(_order_runnable)
 
 
-def route_order(state: State):
+def route_order(state: State) -> str:
+
     """Route order agent: safe tools loop back, sensitive tools require human approval."""
     result = tools_condition(state)
     if result == END:
