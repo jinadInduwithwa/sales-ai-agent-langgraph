@@ -53,7 +53,18 @@ order_agent = Agent(_order_runnable)
 
 def route_order(state: State) -> str:
 
-    """Route order agent: safe tools loop back, sensitive tools require human approval."""
+    """
+    Decides the next node in the graph based on the tool calls in the last message.
+    
+    If the message calls a 'sensitive' tool (like create_order), the flow is routed 
+    to a human approval node. Otherwise, it follows the standard tool execution path.
+    
+    Args:
+        state: The current conversation state.
+        
+    Returns:
+        str: The name of the next node to execute.
+    """
     result = tools_condition(state)
     if result == END:
         return END
