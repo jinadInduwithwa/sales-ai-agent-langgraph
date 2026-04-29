@@ -2,6 +2,9 @@
 Agent 4 — Order Agent
 Manages order placement (sensitive — requires human approval) and order status checks.
 Tools: check_order_status (safe), create_order (sensitive)
+
+Version: 1.1.0
+Last Modified: 2026-04-29
 """
 
 import logging
