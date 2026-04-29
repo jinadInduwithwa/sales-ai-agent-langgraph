@@ -81,8 +81,12 @@ def route_order(state: State) -> str:
         logger.error("No tool calls found in AI message.")
         return END
     
-    first_tool_call = ai_message.tool_calls[0]
-
-    if first_tool_call["name"] in _sensitive_tool_names:
+    tool_name = first_tool_call["name"]
+    
+    # Routing logic: sensitive tools (like order creation) go to manual approval
+    if tool_name in _sensitive_tool_names:
         return "order_sensitive_tools"
+    
+    # Safe tools loop back for execution
     return "order_safe_tools"
+
