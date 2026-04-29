@@ -74,7 +74,12 @@ def route_order(state: State) -> str:
     if result == END:
         return END
     ai_message = state["messages"][-1]
+    if not ai_message.tool_calls:
+        logger.error("No tool calls found in AI message.")
+        return END
+    
     first_tool_call = ai_message.tool_calls[0]
+
     if first_tool_call["name"] in _sensitive_tool_names:
         return "order_sensitive_tools"
     return "order_safe_tools"
