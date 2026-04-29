@@ -54,19 +54,16 @@ Current context:
     ]
 ).partial(time=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-
 _order_runnable = _order_prompt | llm.bind_tools(order_safe_tools + order_sensitive_tools)
 order_agent = Agent(_order_runnable)
 
-
 def route_order(state: State) -> str:
-
     """
     Decides the next node in the graph based on the tool calls in the last message.
-    
+
     If the message calls a 'sensitive' tool (like create_order), the flow is routed 
     to a human approval node. Otherwise, it follows the standard tool execution path.
-    
+
     Args:
         state: The current conversation state.
         
