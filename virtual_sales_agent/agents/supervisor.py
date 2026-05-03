@@ -6,7 +6,6 @@ Reads the user's intent and routes to the correct specialist agent.
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END
-
 from virtual_sales_agent.llm import llm
 from virtual_sales_agent.state import State
 
@@ -28,7 +27,6 @@ Output ONLY the single word, nothing else.""",
         ("placeholder", "{messages}"),
     ]
 )
-
 
 def supervisor_node(state: State, config: RunnableConfig):
     """Agent 1: Supervisor — routes each user turn to the right specialist."""
@@ -58,7 +56,6 @@ def supervisor_node(state: State, config: RunnableConfig):
         next_agent = END
 
     return {"next_agent": next_agent}
-
 
 def route_from_supervisor(state: State):
     """Conditional edge: reads next_agent set by the supervisor node."""
