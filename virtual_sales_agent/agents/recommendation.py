@@ -9,7 +9,6 @@ from datetime import datetime
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import END
 from langgraph.prebuilt import tools_condition
-
 from virtual_sales_agent.llm import llm
 from virtual_sales_agent.state import State
 from virtual_sales_agent.tools import search_products_recommendations
@@ -39,7 +38,6 @@ Current user: {user_info} | Current time: {time}""",
 
 _recommendation_runnable = _recommendation_prompt | llm.bind_tools(recommendation_tools)
 recommendation_agent = Agent(_recommendation_runnable)
-
 
 def route_recommendation(state: State):
     """Route recommendation agent to its tools or END."""
