@@ -2,8 +2,12 @@
 Agent 4 — Order Agent
 Manages order placement (sensitive — requires human approval) and order status checks.
 Tools: check_order_status (safe), create_order (sensitive)
+
+Version: 1.1.0
+Last Modified: 2026-04-29
 """
 
+import logging
 from datetime import datetime
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -15,6 +19,9 @@ from virtual_sales_agent.state import State
 from virtual_sales_agent.tools import check_order_status, create_order
 from virtual_sales_agent.utils import Agent
 
+logger = logging.getLogger(__name__)
+
+
 order_safe_tools = [check_order_status]
 order_sensitive_tools = [create_order]
 _sensitive_tool_names = {create_order.name}
@@ -23,33 +30,60 @@ _order_prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """You are an order management specialist for an online store.
+            """You are a specialized Order Management Agent for a premium online store.
+Your goal is to handle all aspects of the customer's order lifecycle with professionalism and accuracy.
 
-Your responsibilities:
-- Check individual order status or full order history with the check_order_status tool
-- Create new orders with the create_order tool
-  → Always confirm product names, quantities, and total cost with the customer BEFORE placing
-- Communicate order details, estimated delivery, and tracking information clearly
+CORE RESPONSIBILITIES:
+1. TRACKING & HISTORY: Use 'check_order_status' to lookup specific order IDs or list a customer's entire purchase history.
+2. NEW ORDERS: Use 'create_order' to help customers buy products.
+   - PRE-CONFIRMATION CHECKLIST:
+     * List each item clearly.
+     * State the quantity per item.
+     * Provide the unit price and the total order price.
+     * Ask: "Shall I go ahead and place this order for you?"
+   - You MUST receive a clear confirmation from the customer before the final tool call.
+3. POLICIES: Briefly mention return/refund policies if the customer seems dissatisfied with an order.
 
-Be precise about product names and quantities to avoid order errors.
+Be extremely precise with product names to match the database exactly.
 
-Current user: {user_info} | Current time: {time}""",
+Current context:
+- User Info: {user_info}
+- System Time: {time}""",
         ),
         ("placeholder", "{messages}"),
     ]
-).partial(time=datetime.now)
+).partial(time=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 _order_runnable = _order_prompt | llm.bind_tools(order_safe_tools + order_sensitive_tools)
 order_agent = Agent(_order_runnable)
 
+def route_order(state: State) -> str:
+    """
+    Decides the next node in the graph based on the tool calls in the last message.
 
-def route_order(state: State):
-    """Route order agent: safe tools loop back, sensitive tools require human approval."""
+    If the message calls a 'sensitive' tool (like create_order), the flow is routed 
+    to a human approval node. Otherwise, it follows the standard tool execution path.
+
+    Args:
+        state: The current conversation state.
+        
+    Returns:
+        str: The name of the next node to execute.
+    """
     result = tools_condition(state)
     if result == END:
         return END
     ai_message = state["messages"][-1]
-    first_tool_call = ai_message.tool_calls[0]
-    if first_tool_call["name"] in _sensitive_tool_names:
+    if not ai_message.tool_calls:
+        logger.error("No tool calls found in AI message.")
+        return END
+    
+    tool_name = first_tool_call["name"]
+    
+    # Routing logic: sensitive tools (like order creation) go to manual approval
+    if tool_name in _sensitive_tool_names:
         return "order_sensitive_tools"
+    
+    # Safe tools loop back for execution
     return "order_safe_tools"
+
